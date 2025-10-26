@@ -1,0 +1,76 @@
+{
+  "name": "AI-Shu - AI-Powered Personal Tutor",
+  "short_name": "AI-Shu",
+  "description": "Photorealistic AI-powered personal tutor for K-12 and university students with adaptive teaching and real-time interaction",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#6366f1",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "productivity"],
+  "screenshots": [
+    {
+      "src": "/screenshot-mobile.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/screenshot-desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Start New Session",
+      "short_name": "New Session",
+      "description": "Start a new learning session with AI-Shu",
+      "url": "/session/new",
+      "icons": [
+        {
+          "src": "/icon-new-session.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "View Sessions",
+      "short_name": "Sessions",
+      "description": "View all your learning sessions",
+      "url": "/sessions",
+      "icons": [
+        {
+          "src": "/icon-sessions.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "share_target": {
+    "action": "/session/new",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "prefer_related_applications": false
+}

@@ -57,3 +57,84 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Mobile Optimizations */
+@layer utilities {
+  /* Safe area insets for iOS notch and home indicator */
+  .safe-area-inset-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-area-inset-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-area-inset-left {
+    padding-left: env(safe-area-inset-left);
+  }
+
+  .safe-area-inset-right {
+    padding-right: env(safe-area-inset-right);
+  }
+
+  .pb-safe-area-inset-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  /* Touch-optimized tap targets */
+  .tap-target {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Smooth scrolling for mobile */
+  .smooth-scroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  /* Prevent text selection on touch */
+  .no-select {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Better touch feedback */
+  .touch-feedback {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* Mobile-specific media queries */
+@media (max-width: 767px) {
+  /* Larger font sizes for better readability on mobile */
+  body {
+    font-size: 16px;
+  }
+
+  /* Hide scrollbars on mobile for cleaner UI */
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Full width buttons on mobile */
+  .btn-mobile-full {
+    @apply w-full;
+  }
+}
+
+/* Landscape orientation adjustments */
+@media (max-width: 767px) and (orientation: landscape) {
+  /* Reduce vertical spacing in landscape */
+  .space-y-mobile-landscape > * + * {
+    margin-top: 0.5rem;
+  }
+}
