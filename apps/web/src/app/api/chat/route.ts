@@ -4,6 +4,7 @@ import { rateLimiters, getRateLimitIdentifier, createRateLimitHeaders } from '@/
 import { withCsrfProtection } from '@/lib/security/csrf-middleware';
 import { validateRequestBody, chatRequestSchema } from '@/lib/security/validation';
 import { sanitizeChatMessage, sanitizeTopicName } from '@/lib/security/sanitization';
+import { logger } from '@/lib/logger';
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
@@ -80,11 +81,19 @@ Remember: You are here to help ${studentName} *think better*, not just score bet
 };
 
 export async function POST(request: Request) {
+  const startTime = Date.now();
+
   // Apply rate limiting for chat (30 messages per minute)
   const identifier = getRateLimitIdentifier(request);
   const rateLimitResult = rateLimiters.chat.check(identifier);
 
   if (!rateLimitResult.allowed) {
+    logger.warn('Rate limit exceeded for chat', {
+      route: '/api/chat',
+      identifier,
+      retryAfter: rateLimitResult.retryAfter,
+    });
+
     return NextResponse.json(
       {
         error: 'Too many messages',
@@ -114,11 +123,24 @@ export async function POST(request: Request) {
   try {
     const { sessionId, message, subject, topic, studentName, isInitial } = validation.data;
 
+    logger.info('Chat request received', {
+      route: '/api/chat',
+      sessionId,
+      subject,
+      topic,
+      isInitial,
+    });
+
     // Sanitize user inputs
     const sanitizedMessage = message ? sanitizeChatMessage(message) : undefined;
     const sanitizedTopic = sanitizeTopicName(topic);
 
     if (!OPENAI_API_KEY) {
+      logger.error('OpenAI API key not configured', {
+        route: '/api/chat',
+        sessionId,
+      });
+
       return NextResponse.json(
         { error: 'OpenAI API key not configured' },
         { status: 500 }
@@ -182,7 +204,12 @@ export async function POST(request: Request) {
 
     if (!openaiResponse.ok) {
       const error = await openaiResponse.json();
-      console.error('OpenAI API error:', error);
+      logger.error('OpenAI API error', {
+        route: '/api/chat',
+        sessionId,
+        statusCode: openaiResponse.status,
+      }, new Error(`OpenAI API error: ${JSON.stringify(error)}`));
+
       return NextResponse.json(
         { error: 'Failed to get AI response' },
         { status: 500 }
@@ -202,9 +229,19 @@ export async function POST(request: Request) {
       },
     ]);
 
+    const duration = Date.now() - startTime;
+    logger.apiResponse('POST', '/api/chat', 200, duration, {
+      sessionId,
+    });
+
     return NextResponse.json({ reply: aiReply });
   } catch (error) {
-    console.error('Chat API error:', error);
+    const duration = Date.now() - startTime;
+    logger.error('Chat API error', {
+      route: '/api/chat',
+      duration,
+    }, error instanceof Error ? error : new Error(String(error)));
+
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

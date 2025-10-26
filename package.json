@@ -27,6 +27,7 @@
   },
   "packageManager": "npm@10.2.4",
   "dependencies": {
+    "@sentry/nextjs": "^10.22.0",
     "agora-token": "^2.0.5"
   }
 }
