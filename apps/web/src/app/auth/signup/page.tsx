@@ -11,11 +11,14 @@ export default function SignupPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Pre-fill test credentials in development mode
+  const isDevelopment = process.env.NODE_ENV === 'development';
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    confirmPassword: '',
-    fullName: '',
+    email: isDevelopment ? 'dev@ai-shu.com' : '',
+    password: isDevelopment ? 'DevPass123!' : '',
+    confirmPassword: isDevelopment ? 'DevPass123!' : '',
+    fullName: isDevelopment ? 'Test Developer' : '',
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -128,6 +131,16 @@ export default function SignupPage() {
           <CardDescription>
             Join AI-Shu to start your personalized learning journey
           </CardDescription>
+          {isDevelopment && (
+            <div className="mt-3 rounded-md bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 p-3">
+              <p className="text-xs font-medium text-blue-900 dark:text-blue-200">
+                Development Mode: Test credentials pre-filled
+              </p>
+              <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                Email: dev@ai-shu.com | Password: DevPass123!
+              </p>
+            </div>
+          )}
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">

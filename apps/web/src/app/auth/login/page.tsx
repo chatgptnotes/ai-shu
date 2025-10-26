@@ -11,9 +11,12 @@ export default function LoginPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Pre-fill test credentials in development mode
+  const isDevelopment = process.env.NODE_ENV === 'development';
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
+    email: isDevelopment ? 'test@ai-shu.com' : '',
+    password: isDevelopment ? 'TestPass123!' : '',
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -71,6 +74,16 @@ export default function LoginPage() {
         <CardHeader>
           <CardTitle>Welcome back</CardTitle>
           <CardDescription>Sign in to your AI-Shu account</CardDescription>
+          {isDevelopment && (
+            <div className="mt-3 rounded-md bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 p-3">
+              <p className="text-xs font-medium text-blue-900 dark:text-blue-200">
+                Development Mode: Test credentials pre-filled
+              </p>
+              <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                Email: test@ai-shu.com | Password: TestPass123!
+              </p>
+            </div>
+          )}
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
