@@ -20,7 +20,7 @@ export default function TeacherDashboardPage() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Teacher Dashboard</h1>
             <p className="text-muted-foreground">
-              Monitor your students' progress and performance
+              Monitor your students&apos; progress and performance
             </p>
           </div>
         </div>

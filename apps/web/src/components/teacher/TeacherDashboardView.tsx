@@ -6,7 +6,6 @@
 'use client';
 
 import { useState } from 'react';
-import { StudentProgressCard } from './StudentProgressCard';
 import { ClassAnalytics } from './ClassAnalytics';
 import { StudentList } from './StudentList';
 import { RecentActivity } from './RecentActivity';
