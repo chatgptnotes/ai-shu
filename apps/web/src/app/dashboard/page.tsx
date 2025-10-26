@@ -1,7 +1,34 @@
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@ai-shu/ui';
 import { VersionFooter } from '@/components/layout/VersionFooter';
+
+// Subject icon mapping (Google Material Icons style classes)
+const SUBJECT_ICONS: Record<string, { icon: string; color: string }> = {
+  mathematics: { icon: '📐', color: 'text-blue-600' },
+  physics: { icon: '⚛️', color: 'text-purple-600' },
+  chemistry: { icon: '🧪', color: 'text-green-600' },
+  biology: { icon: '🧬', color: 'text-emerald-600' },
+  'computer science': { icon: '💻', color: 'text-indigo-600' },
+  english: { icon: '📚', color: 'text-amber-600' },
+  history: { icon: '📜', color: 'text-orange-600' },
+  geography: { icon: '🌍', color: 'text-teal-600' },
+};
+
+// Calculate session duration in minutes
+function getSessionDuration(createdAt: string, updatedAt: string): string {
+  const start = new Date(createdAt);
+  const end = new Date(updatedAt);
+  const diffMs = end.getTime() - start.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+
+  if (diffMins < 1) return 'Just started';
+  if (diffMins < 60) return `${diffMins} min`;
+  const hours = Math.floor(diffMins / 60);
+  const mins = diffMins % 60;
+  return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
+}
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -87,24 +114,33 @@ export default async function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                <a
+                <Link
                   href="/session/new?subject=physics"
-                  className="block rounded-md bg-primary px-4 py-2 text-center text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                  className="flex items-center gap-3 rounded-md bg-primary px-4 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90"
                 >
-                  Physics
-                </a>
-                <a
+                  <span className="text-xl">{SUBJECT_ICONS.physics.icon}</span>
+                  <span>Physics</span>
+                </Link>
+                <Link
                   href="/session/new?subject=mathematics"
-                  className="block rounded-md bg-primary px-4 py-2 text-center text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                  className="flex items-center gap-3 rounded-md bg-primary px-4 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90"
                 >
-                  Mathematics
-                </a>
-                <a
+                  <span className="text-xl">{SUBJECT_ICONS.mathematics.icon}</span>
+                  <span>Mathematics</span>
+                </Link>
+                <Link
                   href="/session/new?subject=chemistry"
-                  className="block rounded-md bg-primary px-4 py-2 text-center text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                  className="flex items-center gap-3 rounded-md bg-primary px-4 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90"
                 >
-                  Chemistry
-                </a>
+                  <span className="text-xl">{SUBJECT_ICONS.chemistry.icon}</span>
+                  <span>Chemistry</span>
+                </Link>
+                <Link
+                  href="/session/new"
+                  className="flex items-center justify-center gap-2 rounded-md border-2 border-dashed border-input px-4 py-3 text-sm font-medium text-muted-foreground hover:border-primary hover:text-foreground"
+                >
+                  <span>+ More Subjects</span>
+                </Link>
               </div>
             </CardContent>
           </Card>
@@ -117,20 +153,58 @@ export default async function DashboardPage() {
             </CardHeader>
             <CardContent>
               {sessions && sessions.length > 0 ? (
-                <div className="space-y-2">
-                  {sessions.slice(0, 3).map((session) => (
-                    <div key={session.id} className="border-b pb-2 last:border-0">
-                      <p className="text-sm font-medium">{session.topic}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(session.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                  ))}
+                <div className="space-y-3">
+                  {sessions.slice(0, 3).map((session) => {
+                    const subjectKey = session.subject.toLowerCase();
+                    const subjectIcon = SUBJECT_ICONS[subjectKey] || { icon: '📖', color: 'text-gray-600' };
+                    const duration = getSessionDuration(session.created_at, session.updated_at);
+
+                    return (
+                      <Link
+                        key={session.id}
+                        href={`/session/${session.id}`}
+                        className="block rounded-lg border bg-card p-3 transition-all hover:shadow-md"
+                      >
+                        <div className="flex items-start gap-3">
+                          <span className="text-2xl">{subjectIcon.icon}</span>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{session.topic}</p>
+                            <p className="text-xs text-muted-foreground capitalize">{session.subject}</p>
+                            <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+                              <span>{new Date(session.created_at).toLocaleDateString()}</span>
+                              <span>•</span>
+                              <span>{duration}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                  {sessions.length > 3 && (
+                    <Link
+                      href="/sessions"
+                      className="block text-center text-sm text-primary hover:underline"
+                    >
+                      View all sessions ({sessions.length})
+                    </Link>
+                  )}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">
-                  No sessions yet. Start your first session above!
-                </p>
+                <div className="text-center py-8">
+                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                    <span className="text-3xl">🎓</span>
+                  </div>
+                  <p className="mb-2 text-sm font-medium">No sessions yet</p>
+                  <p className="mb-4 text-xs text-muted-foreground">
+                    Start your first AI-powered learning session!
+                  </p>
+                  <Link
+                    href="/session/new"
+                    className="inline-block rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                  >
+                    Create First Session
+                  </Link>
+                </div>
               )}
             </CardContent>
           </Card>
