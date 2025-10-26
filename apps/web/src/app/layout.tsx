@@ -4,6 +4,7 @@ import './globals.css';
 import { Footer } from '@/components/layout/Footer';
 import { Toaster } from '@/components/ui/toaster';
 import { KeyboardShortcutsProvider } from '@/components/layout/KeyboardShortcutsProvider';
+import { ThemeProvider } from '@/components/theme/ThemeProvider';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -22,15 +23,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <KeyboardShortcutsProvider>
-          <div className="flex min-h-screen flex-col">
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </div>
-          <Toaster />
-        </KeyboardShortcutsProvider>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <KeyboardShortcutsProvider>
+            <div className="flex min-h-screen flex-col">
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </div>
+            <Toaster />
+          </KeyboardShortcutsProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

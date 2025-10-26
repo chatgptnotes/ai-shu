@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@ai-s
 import { VersionFooter } from '@/components/layout/VersionFooter';
 import { StatsWidget } from '@/components/dashboard/StatsWidget';
 import { SessionsList } from '@/components/dashboard/SessionsList';
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
 
 // Subject icon mapping (Google Material Icons style classes)
 const SUBJECT_ICONS: Record<string, { icon: string; color: string }> = {
@@ -53,6 +54,7 @@ export default async function DashboardPage() {
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <h1 className="text-2xl font-bold">AI-Shu</h1>
           <div className="flex items-center gap-4">
+            <ThemeToggle />
             <Link
               href="/help"
               className="text-sm font-medium text-muted-foreground hover:text-foreground"

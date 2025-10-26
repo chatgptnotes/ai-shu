@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Button, Input } from '@ai-shu/ui';
+import { ExportChatButton } from '@/components/session/ExportChatButton';
 
 interface Message {
   id: string;
@@ -218,9 +219,21 @@ export function ChatInterface({ sessionId, subject, topic, studentName, onEndSes
             <h2 className="text-lg font-semibold">{topic}</h2>
             <p className="text-sm text-muted-foreground capitalize">{subject}</p>
           </div>
-          <Button variant="destructive" onClick={onEndSession}>
-            End Session
-          </Button>
+          <div className="flex items-center gap-2">
+            <ExportChatButton
+              sessionId={sessionId}
+              sessionTopic={topic}
+              messages={messages.map((m) => ({
+                id: m.id,
+                content: m.content,
+                role: m.role === 'student' ? 'user' : 'assistant',
+                timestamp: m.timestamp,
+              }))}
+            />
+            <Button variant="destructive" onClick={onEndSession}>
+              End Session
+            </Button>
+          </div>
         </div>
       </div>
 
