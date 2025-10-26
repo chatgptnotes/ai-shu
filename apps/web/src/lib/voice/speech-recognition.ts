@@ -99,35 +99,39 @@ export class SpeechRecognitionService {
   }
 }
 
-// Server-side Whisper API integration (for higher accuracy)
+/**
+ * Server-side Whisper API integration (for higher accuracy)
+ * Calls our API route which proxies to OpenAI Whisper
+ */
 export async function transcribeAudioWithWhisper(
   audioBlob: Blob,
   language: string = 'en'
 ): Promise<string> {
-  const apiKey = process.env.OPENAI_API_KEY;
-
-  if (!apiKey) {
-    throw new Error('OpenAI API key not configured for Whisper transcription');
-  }
-
   const formData = new FormData();
-  formData.append('file', audioBlob, 'audio.webm');
-  formData.append('model', 'whisper-1');
+  formData.append('audio', audioBlob, 'audio.webm');
   formData.append('language', language);
 
-  const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-    },
-    body: formData,
-  });
+  try {
+    const response = await fetch('/api/voice/transcribe', {
+      method: 'POST',
+      body: formData,
+    });
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(`Whisper API error: ${error.error?.message || 'Unknown error'}`);
+    if (!response.ok) {
+      const errorData = await response.json();
+
+      // If service not configured, fall back to browser API
+      if (errorData.fallback) {
+        throw new Error('Whisper not available, use browser fallback');
+      }
+
+      throw new Error(errorData.message || 'Transcription failed');
+    }
+
+    const data = await response.json();
+    return data.text;
+  } catch (error) {
+    console.error('Whisper transcription error:', error);
+    throw error;
   }
-
-  const data = await response.json();
-  return data.text;
 }

@@ -105,48 +105,127 @@ export class TextToSpeechService {
   }
 }
 
-// Server-side ElevenLabs API integration (for higher quality voice)
+/**
+ * ElevenLabs Voice Settings
+ */
+export interface ElevenLabsVoiceSettings {
+  stability?: number; // 0-1, how stable/consistent the voice is
+  similarity_boost?: number; // 0-1, how much to boost similarity to original voice
+  style?: number; // 0-1, how much style to apply
+  use_speaker_boost?: boolean; // Enhance clarity
+}
+
+/**
+ * Predefined voice presets for different use cases
+ */
+export const ELEVENLABS_VOICE_PRESETS = {
+  // Female educator voice - warm and clear
+  educator_female: 'EXAVITQu4vr4xnSDxMaL', // Sarah
+  // Male educator voice - authoritative and friendly
+  educator_male: 'TxGEqnHWrfWFTfGW9XjX', // Josh
+  // Young student-friendly voice
+  friendly: 'jsCqWAovK2LkecY7zXl4', // Freya
+  // Professional narrator
+  narrator: 'pNInz6obpgDQGcFmaJgB', // Adam
+  // Multi-lingual support
+  multilingual: 'XB0fDUnXU5powFXDhCwa', // Charlotte
+};
+
+/**
+ * Server-side ElevenLabs API integration (for higher quality voice)
+ * Supports multiple languages and voice customization
+ */
 export async function generateSpeechWithElevenLabs(
   text: string,
-  voiceId: string = 'EXAVITQu4vr4xnSDxMaL', // Default voice ID
-  config: {
-    stability?: number;
-    similarity_boost?: number;
-    style?: number;
-  } = {}
+  voiceId: string = ELEVENLABS_VOICE_PRESETS.educator_female,
+  config: ElevenLabsVoiceSettings = {}
 ): Promise<Blob> {
-  const apiKey = process.env.ELEVENLABS_API_KEY;
+  const apiKey = process.env.ELEVENLABS_API_KEY || process.env.NEXT_PUBLIC_ELEVENLABS_API_KEY;
 
   if (!apiKey) {
-    throw new Error('ElevenLabs API key not configured');
+    throw new Error('ELEVENLABS_API_KEY not configured. Add to .env.local to enable high-quality TTS.');
   }
 
-  const response = await fetch(
-    `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
-    {
-      method: 'POST',
-      headers: {
-        'Accept': 'audio/mpeg',
-        'Content-Type': 'application/json',
-        'xi-api-key': apiKey,
-      },
-      body: JSON.stringify({
-        text,
-        model_id: 'eleven_monolingual_v1',
-        voice_settings: {
-          stability: config.stability ?? 0.5,
-          similarity_boost: config.similarity_boost ?? 0.5,
-          style: config.style ?? 0.0,
-          use_speaker_boost: true,
+  // Default voice settings optimized for education
+  const voiceSettings: ElevenLabsVoiceSettings = {
+    stability: config.stability ?? 0.75,
+    similarity_boost: config.similarity_boost ?? 0.85,
+    style: config.style ?? 0.5,
+    use_speaker_boost: config.use_speaker_boost ?? true,
+  };
+
+  try {
+    const response = await fetch(
+      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
+      {
+        method: 'POST',
+        headers: {
+          'Accept': 'audio/mpeg',
+          'Content-Type': 'application/json',
+          'xi-api-key': apiKey,
         },
-      }),
+        body: JSON.stringify({
+          text,
+          model_id: 'eleven_multilingual_v2', // Supports multiple languages
+          voice_settings: voiceSettings,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        `ElevenLabs API error: ${response.status} ${response.statusText}. ${JSON.stringify(errorData)}`
+      );
     }
-  );
 
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`ElevenLabs API error: ${error}`);
+    const audioBlob = await response.blob();
+    return audioBlob;
+  } catch (error) {
+    console.error('ElevenLabs TTS error:', error);
+    throw error;
   }
+}
 
-  return await response.blob();
+/**
+ * Client-side wrapper for ElevenLabs TTS with automatic fallback
+ * Tries ElevenLabs first, falls back to browser TTS on failure
+ */
+export async function speakWithElevenLabs(
+  text: string,
+  voiceId?: string,
+  config?: ElevenLabsVoiceSettings,
+  onEnd?: () => void,
+  onError?: (error: Error) => void
+): Promise<void> {
+  try {
+    // Try ElevenLabs first
+    const audioBlob = await generateSpeechWithElevenLabs(text, voiceId, config);
+
+    // Play the audio
+    const audioUrl = URL.createObjectURL(audioBlob);
+    const audio = new Audio(audioUrl);
+
+    audio.onended = () => {
+      URL.revokeObjectURL(audioUrl);
+      if (onEnd) onEnd();
+    };
+
+    audio.onerror = () => {
+      URL.revokeObjectURL(audioUrl);
+      if (onError) onError(new Error('Audio playback failed'));
+    };
+
+    await audio.play();
+  } catch (error) {
+    console.warn('ElevenLabs TTS failed, falling back to browser TTS:', error);
+
+    // Fallback to browser TTS
+    const ttsService = new TextToSpeechService();
+    if (ttsService.isAvailable()) {
+      await ttsService.speak(text, {}, onEnd, onError);
+    } else {
+      if (onError) onError(error as Error);
+    }
+  }
 }
