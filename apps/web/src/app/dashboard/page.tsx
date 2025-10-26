@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@ai-s
 import { VersionFooter } from '@/components/layout/VersionFooter';
 import { StatsWidget } from '@/components/dashboard/StatsWidget';
 import { SessionsList } from '@/components/dashboard/SessionsList';
-import { ThemeToggle } from '@/components/theme/ThemeToggle';
+import { AuthenticatedHeader } from '@/components/layout/AuthenticatedHeader';
 
 // Subject icon mapping (Google Material Icons style classes)
 const SUBJECT_ICONS: Record<string, { icon: string; color: string }> = {
@@ -49,27 +49,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <h1 className="text-2xl font-bold">AI-Shu</h1>
-          <div className="flex items-center gap-4">
-            <ThemeToggle />
-            <Link
-              href="/help"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground"
-            >
-              Help
-            </Link>
-            <Link
-              href="/profile"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground"
-            >
-              {profile.full_name}
-            </Link>
-          </div>
-        </div>
-      </header>
+      <AuthenticatedHeader userName={profile.full_name} userRole="student" />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">

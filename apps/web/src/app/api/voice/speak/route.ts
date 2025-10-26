@@ -7,8 +7,13 @@ import { NextResponse } from 'next/server';
 import { generateSpeechWithElevenLabs, ELEVENLABS_VOICE_PRESETS, ElevenLabsVoiceSettings } from '@/lib/voice/text-to-speech';
 import { withRateLimit } from '@/middleware/rate-limit';
 import { rateLimiters } from '@/lib/security/rate-limiter';
+import { withCsrfProtection } from '@/lib/security/csrf-middleware';
 
 async function handler(request: Request): Promise<Response> {
+  // Apply CSRF protection
+  const csrfCheck = await withCsrfProtection(request);
+  if (csrfCheck) return csrfCheck;
+
   try {
     const body = await request.json();
     const { text, voiceId, settings } = body;

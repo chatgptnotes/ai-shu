@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createDIDClient } from '@/lib/did/client';
 import { createElevenLabsClient, VOICE_IDS } from '@/lib/elevenlabs/client';
+import { rateLimiters, getRateLimitIdentifier, createRateLimitHeaders } from '@/lib/security/rate-limiter';
+import { withCsrfProtection } from '@/lib/security/csrf-middleware';
 
 const DID_API_KEY = process.env.DID_API_KEY;
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
@@ -12,6 +14,28 @@ const DEFAULT_AVATAR_URL = 'https://create-images-results.d-id.com/DefaultPresen
 const DEFAULT_VOICE_ID = VOICE_IDS.AISHU;
 
 export async function POST(request: Request) {
+  // Apply strict rate limiting for expensive avatar generation (10 per hour)
+  const identifier = getRateLimitIdentifier(request);
+  const rateLimitResult = rateLimiters.session.check(identifier);
+
+  if (!rateLimitResult.allowed) {
+    return NextResponse.json(
+      {
+        error: 'Too many requests',
+        message: 'Avatar generation limit reached. Please try again later.',
+        retryAfter: rateLimitResult.retryAfter,
+      },
+      {
+        status: 429,
+        headers: createRateLimitHeaders(rateLimitResult),
+      }
+    );
+  }
+
+  // Apply CSRF protection
+  const csrfCheck = await withCsrfProtection(request);
+  if (csrfCheck) return csrfCheck;
+
   try {
     const { text, voiceId, avatarUrl, useElevenLabs } = await request.json();
 

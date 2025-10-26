@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { VersionFooter } from '@/components/layout/VersionFooter';
 import { ProfileForm } from '@/components/profile/ProfileForm';
-import Link from 'next/link';
+import { AuthenticatedHeader } from '@/components/layout/AuthenticatedHeader';
 
 export default async function ProfilePage() {
   const supabase = await createClient();
@@ -26,22 +26,7 @@ export default async function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link href="/dashboard" className="text-2xl font-bold">
-            AI-Shu
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link
-              href="/dashboard"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground"
-            >
-              Dashboard
-            </Link>
-          </div>
-        </div>
-      </header>
+      <AuthenticatedHeader userName={profile.full_name} userRole="student" />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-12">

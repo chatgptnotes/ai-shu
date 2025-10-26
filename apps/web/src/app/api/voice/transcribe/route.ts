@@ -6,9 +6,14 @@
 import { NextResponse } from 'next/server';
 import { withRateLimit } from '@/middleware/rate-limit';
 import { rateLimiters } from '@/lib/security/rate-limiter';
+import { withCsrfProtection } from '@/lib/security/csrf-middleware';
 import OpenAI from 'openai';
 
 async function handler(request: Request): Promise<Response> {
+  // Apply CSRF protection
+  const csrfCheck = await withCsrfProtection(request);
+  if (csrfCheck) return csrfCheck;
+
   try {
     const formData = await request.formData();
     const audioFile = formData.get('audio') as File;

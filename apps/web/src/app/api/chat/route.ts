@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { rateLimiters, getRateLimitIdentifier, createRateLimitHeaders } from '@/lib/security/rate-limiter';
+import { withCsrfProtection } from '@/lib/security/csrf-middleware';
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
@@ -76,6 +78,28 @@ Remember: You are here to help ${studentName} *think better*, not just score bet
 };
 
 export async function POST(request: Request) {
+  // Apply rate limiting for chat (30 messages per minute)
+  const identifier = getRateLimitIdentifier(request);
+  const rateLimitResult = rateLimiters.chat.check(identifier);
+
+  if (!rateLimitResult.allowed) {
+    return NextResponse.json(
+      {
+        error: 'Too many messages',
+        message: 'Please slow down. You can send up to 30 messages per minute.',
+        retryAfter: rateLimitResult.retryAfter,
+      },
+      {
+        status: 429,
+        headers: createRateLimitHeaders(rateLimitResult),
+      }
+    );
+  }
+
+  // Apply CSRF protection
+  const csrfCheck = await withCsrfProtection(request);
+  if (csrfCheck) return csrfCheck;
+
   try {
     const { sessionId, message, subject, topic, studentName, isInitial } = await request.json();
 

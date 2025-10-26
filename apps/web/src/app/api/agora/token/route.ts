@@ -1,10 +1,15 @@
 import { NextResponse } from 'next/server';
 import { generateTempToken } from '@/lib/agora/token-generator';
+import { withCsrfProtection } from '@/lib/security/csrf-middleware';
 
 const AGORA_APP_ID = process.env.NEXT_PUBLIC_AGORA_APP_ID;
 const AGORA_APP_CERTIFICATE = process.env.AGORA_APP_CERTIFICATE;
 
 export async function POST(request: Request) {
+  // Apply CSRF protection
+  const csrfCheck = await withCsrfProtection(request);
+  if (csrfCheck) return csrfCheck;
+
   try {
     const { channelName, uid } = await request.json();
 
