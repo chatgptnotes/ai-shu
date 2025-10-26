@@ -53,9 +53,18 @@ export default async function DashboardPage() {
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <h1 className="text-2xl font-bold">AI-Shu</h1>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">
-              Welcome, {profile.full_name}
-            </span>
+            <Link
+              href="/help"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground"
+            >
+              Help
+            </Link>
+            <Link
+              href="/profile"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground"
+            >
+              {profile.full_name}
+            </Link>
           </div>
         </div>
       </header>
