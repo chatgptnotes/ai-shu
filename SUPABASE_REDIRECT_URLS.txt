@@ -1,0 +1,27 @@
+# Supabase Redirect URLs Configuration
+# Copy and paste these EXACT URLs into Supabase Dashboard
+
+## Step 1: Go to Supabase Dashboard
+https://app.supabase.com/project/mdzavfrynjjivxvvibnr/auth/url-configuration
+
+## Step 2: Set Site URL to:
+https://ai-jtavxdjqw-chatgptnotes-6366s-projects.vercel.app
+
+## Step 3: Add ALL these URLs to "Redirect URLs" (one per line):
+
+https://ai-jtavxdjqw-chatgptnotes-6366s-projects.vercel.app/**
+https://ai-jtavxdjqw-chatgptnotes-6366s-projects.vercel.app/auth/callback
+https://ai-jtavxdjqw-chatgptnotes-6366s-projects.vercel.app/auth/login
+https://ai-jtavxdjqw-chatgptnotes-6366s-projects.vercel.app/auth/signup
+https://ai-jtavxdjqw-chatgptnotes-6366s-projects.vercel.app/auth/reset-password
+https://ai-jtavxdjqw-chatgptnotes-6366s-projects.vercel.app/auth/update-password
+https://ai-jtavxdjqw-chatgptnotes-6366s-projects.vercel.app/dashboard
+http://localhost:3002/**
+http://localhost:3000/**
+
+## Step 4: Save and wait 10 seconds
+
+## Step 5: Clear browser cache or use Incognito mode
+
+## Step 6: Test at:
+https://ai-jtavxdjqw-chatgptnotes-6366s-projects.vercel.app/auth/login
