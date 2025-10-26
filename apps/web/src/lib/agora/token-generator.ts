@@ -2,13 +2,12 @@
  * Agora RTC Token Generator
  * Generates tokens for secure Agora RTC channel access
  *
- * Note: This is a simplified implementation for development.
- * For production, use the Agora Token Server package for proper token generation.
+ * Uses the agora-token package for production-ready token generation.
  *
  * Documentation: https://docs.agora.io/en/video-calling/develop/authentication-workflow
  */
 
-// import crypto from 'crypto'; // Unused for now, will be needed for production token generation
+import { RtcTokenBuilder, RtcRole } from 'agora-token';
 
 export interface TokenConfig {
   appId: string;
@@ -40,10 +39,7 @@ export enum AgoraPrivilege {
 /**
  * Generate Agora RTC Token
  *
- * IMPORTANT: This implementation requires the agora-access-token package
- * Install with: npm install agora-access-token
- *
- * For now, we'll provide a placeholder that should be replaced with actual implementation
+ * Production-ready token generation using agora-token package
  */
 export function generateAgoraToken(config: TokenConfig): string {
   const {
@@ -57,63 +53,36 @@ export function generateAgoraToken(config: TokenConfig): string {
 
   // Check if required environment variables are set
   if (!appId || !appCertificate) {
-    throw new Error('Agora App ID and Certificate are required');
+    throw new Error('Agora App ID and Certificate are required for token generation');
   }
 
-  // TODO: Replace with actual Agora token generation
-  // This is a placeholder for development
-  console.warn(
-    'Using placeholder token generation. Implement proper Agora token generation for production!'
-  );
-
-  // For development without agora-access-token package
-  // Return a mock token format
   const currentTimestamp = Math.floor(Date.now() / 1000);
   const privilegeExpire = currentTimestamp + privilegeExpireTime;
 
-  // This is NOT a real Agora token - just a placeholder
-  // In production, use the agora-access-token package
-  const mockToken = Buffer.from(
-    JSON.stringify({
-      appId,
-      channel: channelName,
-      uid: uid.toString(),
-      role,
-      expire: privilegeExpire,
-    })
-  ).toString('base64');
+  // Convert role to Agora role type
+  const agoraRole = role === 'publisher' ? RtcRole.PUBLISHER : RtcRole.SUBSCRIBER;
 
-  return mockToken;
+  // Convert uid to number if it's a string
+  const numericUid = typeof uid === 'string' ? parseInt(uid, 10) : uid;
+
+  // Build the production token
+  // buildTokenWithUid(appId, appCertificate, channelName, uid, role, tokenExpire, privilegeExpire)
+  const token = RtcTokenBuilder.buildTokenWithUid(
+    appId,
+    appCertificate,
+    channelName,
+    numericUid,
+    agoraRole,
+    privilegeExpire, // Token expiration timestamp
+    privilegeExpire  // Privilege expiration timestamp (same as token)
+  );
+
+  return token;
 }
 
 /**
- * Validate token expiration
- */
-export function isTokenExpired(token: string): boolean {
-  try {
-    const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-    const currentTimestamp = Math.floor(Date.now() / 1000);
-    return decoded.expire < currentTimestamp;
-  } catch {
-    return true;
-  }
-}
-
-/**
- * Get token expiration time
- */
-export function getTokenExpiration(token: string): number | null {
-  try {
-    const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-    return decoded.expire;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Generate a simple temporary token for development
- * WARNING: Only use for development/testing!
+ * Generate a simple temporary token for development/testing
+ * WARNING: Only use when AGORA_APP_CERTIFICATE is not configured!
  */
 export function generateTempToken(channelName: string, uid: string | number): string {
   const currentTimestamp = Math.floor(Date.now() / 1000);
@@ -128,41 +97,3 @@ export function generateTempToken(channelName: string, uid: string | number): st
     })
   ).toString('base64');
 }
-
-/**
- * Production-ready token generation using agora-access-token package
- *
- * To use this, install: npm install agora-access-token
- * Then uncomment and use this function instead
- */
-/*
-import { RtcTokenBuilder, RtcRole } from 'agora-access-token';
-
-export function generateProductionToken(config: TokenConfig): string {
-  const {
-    appId,
-    appCertificate,
-    channelName,
-    uid,
-    role,
-    privilegeExpireTime = 86400,
-  } = config;
-
-  const currentTimestamp = Math.floor(Date.now() / 1000);
-  const privilegeExpire = currentTimestamp + privilegeExpireTime;
-
-  const agoraRole = role === 'publisher' ? RtcRole.PUBLISHER : RtcRole.SUBSCRIBER;
-
-  // Build the token
-  const token = RtcTokenBuilder.buildTokenWithUid(
-    appId,
-    appCertificate,
-    channelName,
-    typeof uid === 'string' ? parseInt(uid) : uid,
-    agoraRole,
-    privilegeExpire
-  );
-
-  return token;
-}
-*/

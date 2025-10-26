@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { generateTempToken } from '@/lib/agora/token-generator';
+import { generateAgoraToken, generateTempToken } from '@/lib/agora/token-generator';
 import { withCsrfProtection } from '@/lib/security/csrf-middleware';
 import { validateRequestBody, agoraTokenSchema } from '@/lib/security/validation';
 
@@ -30,11 +30,31 @@ export async function POST(request: Request) {
       );
     }
 
-    // For development: use temporary token
-    // For production: implement proper token generation with agora-access-token package
-    const token = AGORA_APP_CERTIFICATE
-      ? generateTempToken(channelName, uid || 0)
-      : null; // null token works for testing without certificate
+    let token: string | null = null;
+
+    // Production: use secure token generation with certificate
+    if (AGORA_APP_CERTIFICATE) {
+      try {
+        token = generateAgoraToken({
+          appId: AGORA_APP_ID,
+          appCertificate: AGORA_APP_CERTIFICATE,
+          channelName,
+          uid: uid || 0,
+          role: 'publisher', // Default to publisher role for video calls
+          privilegeExpireTime: 86400, // 24 hours
+        });
+      } catch (error) {
+        console.error('Production token generation failed:', error);
+        return NextResponse.json(
+          { error: 'Failed to generate secure token' },
+          { status: 500 }
+        );
+      }
+    } else {
+      // Development: use temporary token (less secure, for testing only)
+      console.warn('AGORA_APP_CERTIFICATE not set - using temporary token for development only');
+      token = generateTempToken(channelName, uid || 0);
+    }
 
     return NextResponse.json({
       token,
