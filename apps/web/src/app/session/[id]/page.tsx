@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { ChatInterface } from '@/components/chat/ChatInterface';
+import { VersionFooter } from '@/components/layout/VersionFooter';
 
 export default async function SessionPage({ params }: { params: Promise<{ id: string }> | { id: string } }) {
   // Next.js 15+ returns params as a Promise, Next.js 14 doesn't
@@ -101,6 +102,8 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
           }}
         />
       </main>
+
+      <VersionFooter />
     </div>
   );
 }

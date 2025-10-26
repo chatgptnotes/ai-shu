@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { Button, Input, Label, Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@ai-shu/ui';
+import { VersionFooter } from '@/components/layout/VersionFooter';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -130,6 +131,7 @@ export default function LoginPage() {
           </CardFooter>
         </form>
       </Card>
+      <VersionFooter />
     </div>
   );
 }

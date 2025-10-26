@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@ai-shu/ui';
+import { VersionFooter } from '@/components/layout/VersionFooter';
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -135,6 +136,8 @@ export default async function DashboardPage() {
           </Card>
         </div>
       </main>
+
+      <VersionFooter />
     </div>
   );
 }
