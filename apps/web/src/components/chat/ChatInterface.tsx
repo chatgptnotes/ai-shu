@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button, Input } from '@ai-shu/ui';
 import { ExportChatButton } from '@/components/session/ExportChatButton';
+import { VoiceInputButton } from '@/components/chat/VoiceInputButton';
+import { VoiceOutputButton } from '@/components/chat/VoiceOutputButton';
 
 interface Message {
   id: string;
@@ -251,9 +253,14 @@ export function ChatInterface({ sessionId, subject, topic, studentName, onEndSes
                   : 'bg-muted'
               }`}
             >
-              <p className="text-sm font-medium mb-1">
-                {message.role === 'student' ? 'You' : 'AI-Shu'}
-              </p>
+              <div className="flex items-center justify-between gap-2 mb-1">
+                <p className="text-sm font-medium">
+                  {message.role === 'student' ? 'You' : 'AI-Shu'}
+                </p>
+                {message.role === 'ai_tutor' && (
+                  <VoiceOutputButton text={message.content} />
+                )}
+              </div>
               <p className="whitespace-pre-wrap">{message.content}</p>
             </div>
           </div>
@@ -278,6 +285,10 @@ export function ChatInterface({ sessionId, subject, topic, studentName, onEndSes
             placeholder="Ask a question or share your thoughts..."
             disabled={isLoading}
             className="flex-1"
+          />
+          <VoiceInputButton
+            onTranscript={(text) => setInput(prev => prev + ' ' + text)}
+            language="en-US"
           />
           <Button type="submit" disabled={isLoading || !input.trim()}>
             Send

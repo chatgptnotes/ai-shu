@@ -1,17 +1,21 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { ThemeToggle } from '../ThemeToggle';
-import { ThemeProvider } from 'next-themes';
+
+const mockSetTheme = jest.fn();
 
 // Mock next-themes
 jest.mock('next-themes', () => ({
-  ThemeProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   useTheme: () => ({
     theme: 'light',
-    setTheme: jest.fn(),
+    setTheme: mockSetTheme,
   }),
 }));
 
 describe('ThemeToggle', () => {
+  beforeEach(() => {
+    mockSetTheme.mockClear();
+  });
+
   it('renders without crashing', () => {
     render(<ThemeToggle />);
     const button = screen.getByRole('button', { name: /toggle theme/i });
@@ -24,21 +28,12 @@ describe('ThemeToggle', () => {
     expect(button.getAttribute('aria-label')).toBe('Toggle theme');
   });
 
-  it('toggles theme on click', async () => {
-    const mockSetTheme = jest.fn();
-    const useTheme = require('next-themes').useTheme;
-    useTheme.mockReturnValue({
-      theme: 'light',
-      setTheme: mockSetTheme,
-    });
-
+  it('calls setTheme on click', () => {
     render(<ThemeToggle />);
     const button = screen.getByRole('button');
 
     fireEvent.click(button);
 
-    await waitFor(() => {
-      expect(mockSetTheme).toHaveBeenCalled();
-    });
+    expect(mockSetTheme).toHaveBeenCalledWith('dark');
   });
 });
