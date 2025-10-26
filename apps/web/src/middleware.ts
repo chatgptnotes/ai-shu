@@ -58,8 +58,13 @@ export async function middleware(request: NextRequest) {
     // Refresh session if exists
     const { error } = await supabase.auth.getUser();
 
+    // Define public routes that don't require authentication
+    const publicRoutes = ['/', '/about', '/help'];
+    const isPublicRoute = publicRoutes.some(route => request.nextUrl.pathname === route);
+    const isAuthRoute = request.nextUrl.pathname.startsWith('/auth');
+
     // If there's an error and user is trying to access protected routes, redirect to login
-    if (error && !request.nextUrl.pathname.startsWith('/auth') && request.nextUrl.pathname !== '/') {
+    if (error && !isAuthRoute && !isPublicRoute) {
       console.log('Auth error in middleware:', error.message);
       const redirectUrl = request.nextUrl.clone();
       redirectUrl.pathname = '/auth/login';
