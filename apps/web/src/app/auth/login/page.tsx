@@ -32,7 +32,7 @@ export default function LoginPage() {
       const supabase = createClient();
 
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email: formData.email,
+        email: formData.email.trim(),
         password: formData.password,
       });
 
@@ -40,11 +40,16 @@ export default function LoginPage() {
 
       if (data.user) {
         // Check if user has completed profile setup
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('student_profiles')
           .select('*')
           .eq('user_id', data.user.id)
           .single();
+
+        if (profileError && profileError.code !== 'PGRST116') {
+          // PGRST116 = no rows returned, which is OK for new users
+          console.error('Profile fetch error:', profileError);
+        }
 
         if (profile) {
           router.push('/dashboard');

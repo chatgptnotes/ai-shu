@@ -37,9 +37,11 @@ export default function SetupProfilePage() {
   }, [router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+
     setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [name]: name === 'gradeLevel' ? parseInt(value, 10) : value,
     }));
     setError(null);
   };
