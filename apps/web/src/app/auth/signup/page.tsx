@@ -83,9 +83,22 @@ export default function SignupPage() {
 
       if (data.user) {
         console.log('User created successfully:', data.user.id);
+
+        // Check if email confirmation is required
+        if (data.user.identities && data.user.identities.length === 0) {
+          setError('Please check your email to confirm your account before logging in.');
+          setIsLoading(false);
+          return;
+        }
+
         // User profile is automatically created by database trigger
         // Redirect to profile setup
         router.push('/auth/setup-profile');
+      } else if (data.session === null) {
+        // Email confirmation required
+        setError('Account created! Please check your email to confirm your account.');
+        setIsLoading(false);
+        return;
       }
     } catch (err) {
       console.error('Signup catch error:', err);

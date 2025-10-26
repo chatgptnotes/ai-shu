@@ -24,8 +24,18 @@ export default function UpdatePasswordPage() {
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const accessToken = hashParams.get('access_token');
         const refreshToken = hashParams.get('refresh_token');
+        const errorCode = hashParams.get('error');
+        const errorDescription = hashParams.get('error_description');
+
+        // Check if there's an error in the URL
+        if (errorCode) {
+          console.error('Auth error from URL:', errorCode, errorDescription);
+          setError(`Authentication error: ${errorDescription || errorCode}. Please request a new password reset link.`);
+          return;
+        }
 
         if (accessToken && refreshToken) {
+          console.log('Setting session from tokens');
           // Set the session
           const { error: sessionError } = await supabase.auth.setSession({
             access_token: accessToken,
@@ -33,17 +43,29 @@ export default function UpdatePasswordPage() {
           });
 
           if (sessionError) {
-            setError('Invalid or expired reset link. Please request a new one.');
+            console.error('Session error:', sessionError);
+            setError('Invalid or expired reset link. Please request a new one from the login page.');
+          } else {
+            console.log('Session set successfully');
           }
         } else {
           // Check if already authenticated
-          const { data: { user } } = await supabase.auth.getUser();
+          console.log('No tokens in URL, checking existing session');
+          const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+          if (userError) {
+            console.error('User error:', userError);
+          }
+
           if (!user) {
-            setError('Invalid or expired reset link. Please request a new one.');
+            setError('No active session. Please use the password reset link from your email, or request a new one from the login page.');
+          } else {
+            console.log('Existing session found for user:', user.id);
           }
         }
-      } catch {
-        setError('Failed to verify reset link. Please try again.');
+      } catch (err) {
+        console.error('Password reset error:', err);
+        setError('Failed to verify reset link. Please request a new password reset from the login page.');
       }
     };
 
