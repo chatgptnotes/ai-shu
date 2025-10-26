@@ -79,8 +79,8 @@ export default function SignupPage() {
         // Redirect to profile setup
         router.push('/auth/setup-profile');
       }
-    } catch (err: any) {
-      setError(err.message || 'An error occurred during signup');
+    } catch (err) {
+      setError((err as Error).message || 'An error occurred during signup');
     } finally {
       setIsLoading(false);
     }

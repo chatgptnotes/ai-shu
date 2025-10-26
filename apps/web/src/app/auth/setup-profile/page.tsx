@@ -74,8 +74,8 @@ export default function SetupProfilePage() {
       if (profileError) throw profileError;
 
       router.push('/dashboard');
-    } catch (err: any) {
-      setError(err.message || 'An error occurred while setting up your profile');
+    } catch (err) {
+      setError((err as Error).message || 'An error occurred while setting up your profile');
     } finally {
       setIsLoading(false);
     }

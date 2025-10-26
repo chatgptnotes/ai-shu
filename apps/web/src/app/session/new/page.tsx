@@ -6,6 +6,8 @@ import { createClient } from '@/lib/supabase/client';
 import { Button, Input, Label, Card, CardHeader, CardTitle, CardDescription, CardContent } from '@ai-shu/ui';
 import type { Subject } from '@ai-shu/types';
 
+export const dynamic = 'force-dynamic';
+
 export default function NewSessionPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -93,8 +95,8 @@ export default function NewSessionPage() {
 
       // Redirect to session chat
       router.push(`/session/${session.id}`);
-    } catch (err: any) {
-      setError(err.message || 'Failed to create session');
+    } catch (err) {
+      setError((err as Error).message || 'Failed to create session');
     } finally {
       setIsLoading(false);
     }
