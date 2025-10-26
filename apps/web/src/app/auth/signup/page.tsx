@@ -61,6 +61,8 @@ export default function SignupPage() {
     try {
       const supabase = createClient();
 
+      console.log('Attempting signup with:', { email: formData.email });
+
       // Sign up the user
       const { data, error: signUpError } = await supabase.auth.signUp({
         email: formData.email,
@@ -72,15 +74,23 @@ export default function SignupPage() {
         },
       });
 
-      if (signUpError) throw signUpError;
+      console.log('Signup response:', { data, error: signUpError });
+
+      if (signUpError) {
+        console.error('Signup error:', signUpError);
+        throw signUpError;
+      }
 
       if (data.user) {
+        console.log('User created successfully:', data.user.id);
         // User profile is automatically created by database trigger
         // Redirect to profile setup
         router.push('/auth/setup-profile');
       }
     } catch (err) {
-      setError((err as Error).message || 'An error occurred during signup');
+      console.error('Signup catch error:', err);
+      const errorMessage = (err as Error).message || 'An error occurred during signup';
+      setError(`Sign up failed: ${errorMessage}`);
     } finally {
       setIsLoading(false);
     }
