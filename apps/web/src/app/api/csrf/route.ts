@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { generateCsrfToken, getSessionIdentifier, createCsrfCookieHeader } from '@/lib/security/csrf';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/csrf
  * Returns a CSRF token for the current session

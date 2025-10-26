@@ -7,6 +7,8 @@ import { createClient } from '@/lib/supabase/server';
 import { logger } from '@/lib/logger';
 import { rateLimiters, getRateLimitIdentifier, createRateLimitHeaders } from '@/lib/security/rate-limiter';
 
+
+export const dynamic = 'force-dynamic';
 /**
  * GET /api/teacher/assignments/[assignmentId]/submissions
  * Get all submissions for an assignment

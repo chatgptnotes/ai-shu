@@ -3,6 +3,8 @@ import { generateAgoraToken, generateTempToken } from '@/lib/agora/token-generat
 import { withCsrfProtection } from '@/lib/security/csrf-middleware';
 import { validateRequestBody, agoraTokenSchema } from '@/lib/security/validation';
 
+
+export const dynamic = 'force-dynamic';
 const AGORA_APP_ID = process.env.NEXT_PUBLIC_AGORA_APP_ID;
 const AGORA_APP_CERTIFICATE = process.env.AGORA_APP_CERTIFICATE;
 

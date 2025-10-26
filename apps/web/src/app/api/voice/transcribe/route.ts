@@ -10,6 +10,8 @@ import { withCsrfProtection } from '@/lib/security/csrf-middleware';
 import { validateFileUpload } from '@/lib/security/validation';
 import OpenAI from 'openai';
 
+
+export const dynamic = 'force-dynamic';
 async function handler(request: Request): Promise<Response> {
   // Apply CSRF protection
   const csrfCheck = await withCsrfProtection(request);

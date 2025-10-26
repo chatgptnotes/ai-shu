@@ -11,6 +11,8 @@ import { withCsrfProtection } from '@/lib/security/csrf-middleware';
 import { validateRequestBody, voiceTTSSchema } from '@/lib/security/validation';
 import { sanitizePlainText } from '@/lib/security/sanitization';
 
+
+export const dynamic = 'force-dynamic';
 async function handler(request: Request): Promise<Response> {
   // Apply CSRF protection
   const csrfCheck = await withCsrfProtection(request);

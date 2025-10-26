@@ -5,6 +5,8 @@ import { withCsrfProtection } from '@/lib/security/csrf-middleware';
 import { validateRequestBody, billingPortalSchema } from '@/lib/security/validation';
 import { sanitizeUrl } from '@/lib/security/sanitization';
 
+
+export const dynamic = 'force-dynamic';
 export async function POST(request: Request) {
   // Apply CSRF protection
   const csrfCheck = await withCsrfProtection(request);

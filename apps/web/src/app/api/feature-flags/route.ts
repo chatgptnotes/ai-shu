@@ -8,6 +8,8 @@ import { featureFlags } from '@/lib/feature-flags';
 import { logger } from '@/lib/logger';
 import { rateLimiters, getRateLimitIdentifier, createRateLimitHeaders } from '@/lib/security/rate-limiter';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request) {
   const startTime = Date.now();
 

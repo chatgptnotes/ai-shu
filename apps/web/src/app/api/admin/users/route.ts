@@ -8,6 +8,8 @@ import { logger } from '@/lib/logger';
 import { rateLimiters, getRateLimitIdentifier, createRateLimitHeaders } from '@/lib/security/rate-limiter';
 import { z } from 'zod';
 
+
+export const dynamic = 'force-dynamic';
 // Validation schema for updating user role
 const updateUserRoleSchema = z.object({
   user_id: z.string().uuid(),

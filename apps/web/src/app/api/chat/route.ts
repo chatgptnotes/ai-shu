@@ -6,6 +6,8 @@ import { validateRequestBody, chatRequestSchema } from '@/lib/security/validatio
 import { sanitizeChatMessage, sanitizeTopicName } from '@/lib/security/sanitization';
 import { logger } from '@/lib/logger';
 
+
+export const dynamic = 'force-dynamic';
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 const getSystemPrompt = (subject: string, topic: string, studentName: string) => {

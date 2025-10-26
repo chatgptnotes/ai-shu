@@ -6,6 +6,8 @@ import { rateLimiters, getRateLimitIdentifier, createRateLimitHeaders } from '@/
 import { withCsrfProtection } from '@/lib/security/csrf-middleware';
 import { validateRequestBody, stripeCheckoutSchema } from '@/lib/security/validation';
 
+
+export const dynamic = 'force-dynamic';
 export async function POST(request: Request) {
   // Apply rate limiting for payment endpoints (10 requests per minute)
   const identifier = getRateLimitIdentifier(request);

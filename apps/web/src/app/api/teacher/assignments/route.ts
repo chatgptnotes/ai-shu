@@ -8,6 +8,8 @@ import { logger } from '@/lib/logger';
 import { rateLimiters, getRateLimitIdentifier, createRateLimitHeaders } from '@/lib/security/rate-limiter';
 import { z } from 'zod';
 
+
+export const dynamic = 'force-dynamic';
 // Validation schema for creating an assignment
 const createAssignmentSchema = z.object({
   class_id: z.string().uuid(),

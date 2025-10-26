@@ -6,6 +6,8 @@ import { withCsrfProtection } from '@/lib/security/csrf-middleware';
 import { validateRequestBody, avatarGenerationSchema } from '@/lib/security/validation';
 import { sanitizePlainText, sanitizeUrl } from '@/lib/security/sanitization';
 
+
+export const dynamic = 'force-dynamic';
 const DID_API_KEY = process.env.DID_API_KEY;
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
 

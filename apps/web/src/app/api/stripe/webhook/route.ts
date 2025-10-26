@@ -3,6 +3,8 @@ import { constructWebhookEvent } from '@/lib/stripe/client';
 import { createClient } from '@supabase/supabase-js';
 import Stripe from 'stripe';
 
+
+export const dynamic = 'force-dynamic';
 function getSupabaseAdmin() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
