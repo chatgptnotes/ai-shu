@@ -52,8 +52,8 @@ export default function LoginPage() {
           router.push('/auth/setup-profile');
         }
       }
-    } catch (err: any) {
-      setError(err.message || 'Invalid email or password');
+    } catch (err) {
+      setError((err as Error).message || 'Invalid email or password');
     } finally {
       setIsLoading(false);
     }
@@ -117,7 +117,7 @@ export default function LoginPage() {
             </Button>
 
             <p className="text-center text-sm text-muted-foreground">
-              Don't have an account?{' '}
+              Don&apos;t have an account?{' '}
               <Link href="/auth/signup" className="font-medium text-primary hover:underline">
                 Sign up
               </Link>

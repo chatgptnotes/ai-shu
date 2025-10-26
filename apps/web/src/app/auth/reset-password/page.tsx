@@ -27,8 +27,8 @@ export default function ResetPasswordPage() {
       if (resetError) throw resetError;
 
       setSuccess(true);
-    } catch (err: any) {
-      setError(err.message || 'An error occurred');
+    } catch (err) {
+      setError((err as Error).message || 'An error occurred');
     } finally {
       setIsLoading(false);
     }
@@ -41,7 +41,7 @@ export default function ResetPasswordPage() {
           <CardHeader>
             <CardTitle>Check your email</CardTitle>
             <CardDescription>
-              We've sent a password reset link to {email}
+              We&apos;ve sent a password reset link to {email}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -67,7 +67,7 @@ export default function ResetPasswordPage() {
         <CardHeader>
           <CardTitle>Reset your password</CardTitle>
           <CardDescription>
-            Enter your email address and we'll send you a reset link
+            Enter your email address and we&apos;ll send you a reset link
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>

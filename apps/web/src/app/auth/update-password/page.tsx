@@ -42,7 +42,7 @@ export default function UpdatePasswordPage() {
             setError('Invalid or expired reset link. Please request a new one.');
           }
         }
-      } catch (err) {
+      } catch {
         setError('Failed to verify reset link. Please try again.');
       }
     };
@@ -82,8 +82,8 @@ export default function UpdatePasswordPage() {
       setTimeout(() => {
         router.push('/auth/login');
       }, 2000);
-    } catch (err: any) {
-      setError(err.message || 'Failed to update password');
+    } catch (err) {
+      setError((err as Error).message || 'Failed to update password');
     } finally {
       setIsLoading(false);
     }
