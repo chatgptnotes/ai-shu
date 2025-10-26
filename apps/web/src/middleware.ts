@@ -8,55 +8,70 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
+  try {
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return request.cookies.get(name)?.value;
+          },
+          set(name: string, value: string, options: CookieOptions) {
+            request.cookies.set({
+              name,
+              value,
+              ...options,
+            });
+            response = NextResponse.next({
+              request: {
+                headers: request.headers,
+              },
+            });
+            response.cookies.set({
+              name,
+              value,
+              ...options,
+            });
+          },
+          remove(name: string, options: CookieOptions) {
+            request.cookies.set({
+              name,
+              value: '',
+              ...options,
+            });
+            response = NextResponse.next({
+              request: {
+                headers: request.headers,
+              },
+            });
+            response.cookies.set({
+              name,
+              value: '',
+              ...options,
+            });
+          },
         },
-        set(name: string, value: string, options: CookieOptions) {
-          request.cookies.set({
-            name,
-            value,
-            ...options,
-          });
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          });
-          response.cookies.set({
-            name,
-            value,
-            ...options,
-          });
-        },
-        remove(name: string, options: CookieOptions) {
-          request.cookies.set({
-            name,
-            value: '',
-            ...options,
-          });
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          });
-          response.cookies.set({
-            name,
-            value: '',
-            ...options,
-          });
-        },
-      },
+      }
+    );
+
+    // Refresh session if exists
+    const { data: { user }, error } = await supabase.auth.getUser();
+
+    // If there's an error and user is trying to access protected routes, redirect to login
+    if (error && !request.nextUrl.pathname.startsWith('/auth') && request.nextUrl.pathname !== '/') {
+      console.log('Auth error in middleware:', error.message);
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = '/auth/login';
+      redirectUrl.searchParams.set('redirectedFrom', request.nextUrl.pathname);
+      return NextResponse.redirect(redirectUrl);
     }
-  );
 
-  await supabase.auth.getUser();
-
-  return response;
+    return response;
+  } catch (error) {
+    console.error('Middleware error:', error);
+    return response;
+  }
 }
 
 export const config = {
