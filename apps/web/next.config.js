@@ -1,4 +1,5 @@
 const { withSentryConfig } = require('@sentry/nextjs');
+const withNextIntl = require('./next-intl.plugin');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -46,7 +47,10 @@ const sentryOptions = {
   automaticVercelMonitors: true,
 };
 
+// Apply next-intl plugin first, then Sentry if configured
+const configWithIntl = withNextIntl(nextConfig);
+
 // Make sure adding Sentry options is the last code to run before exporting
 module.exports = process.env.NEXT_PUBLIC_SENTRY_DSN
-  ? withSentryConfig(nextConfig, sentryWebpackPluginOptions, sentryOptions)
-  : nextConfig;
+  ? withSentryConfig(configWithIntl, sentryWebpackPluginOptions, sentryOptions)
+  : configWithIntl;
