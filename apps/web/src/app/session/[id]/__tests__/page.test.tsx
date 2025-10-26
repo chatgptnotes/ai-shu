@@ -114,7 +114,7 @@ describe('SessionPage', () => {
       const params = { id: 'session-456' }
 
       const component = await SessionPage({ params })
-      const { container } = render(component)
+      render(component)
 
       expect(screen.getByTestId('chat-interface')).toBeInTheDocument()
       expect(screen.getByTestId('session-id')).toHaveTextContent('session-456')
@@ -186,7 +186,7 @@ describe('SessionPage', () => {
       const params = Promise.resolve({ id: 'session-999' })
 
       const component = await SessionPage({ params })
-      const { container } = render(component)
+      render(component)
 
       expect(screen.getByTestId('chat-interface')).toBeInTheDocument()
       expect(screen.getByTestId('session-id')).toHaveTextContent('session-999')
@@ -556,7 +556,7 @@ describe('SessionPage', () => {
       const params = { id: 'session-123' }
 
       const component = await SessionPage({ params })
-      const { container } = render(component)
+      render(component)
 
       expect(screen.getByText('AI-Shu')).toBeInTheDocument()
     })
