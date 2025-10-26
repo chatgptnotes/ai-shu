@@ -1,34 +1,10 @@
 import Link from 'next/link';
-import { VersionFooter } from '@/components/layout/VersionFooter';
+import { PublicHeader } from '@/components/layout/PublicHeader';
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-background">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold text-primary">AI-Shu</h1>
-              <span className="text-xs text-muted-foreground/60">by Bettroi</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <Link
-                href="/auth/login"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground"
-              >
-                Sign In
-              </Link>
-              <Link
-                href="/auth/signup"
-                className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
-              >
-                Get Started
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
+      <PublicHeader />
 
       {/* Hero Section */}
       <section className="border-b bg-gradient-to-b from-background to-muted/20">
@@ -361,8 +337,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      <VersionFooter />
     </div>
   );
 }

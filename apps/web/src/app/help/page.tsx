@@ -1,26 +1,11 @@
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardContent } from '@ai-shu/ui';
-import { VersionFooter } from '@/components/layout/VersionFooter';
+import { PublicHeader } from '@/components/layout/PublicHeader';
 
 export default function HelpPage() {
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link href="/" className="text-2xl font-bold">
-            AI-Shu
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link
-              href="/dashboard"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground"
-            >
-              Dashboard
-            </Link>
-          </div>
-        </div>
-      </header>
+      <PublicHeader />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-12">
@@ -265,8 +250,6 @@ export default function HelpPage() {
           </div>
         </div>
       </main>
-
-      <VersionFooter />
     </div>
   );
 }

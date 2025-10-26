@@ -12,6 +12,7 @@ import {
 } from '@/config/subscription-tiers';
 import { Check, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { PublicHeader } from '@/components/layout/PublicHeader';
 
 export default function PricingPage() {
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');
@@ -57,9 +58,11 @@ export default function PricingPage() {
   };
 
   return (
-    <div className="container mx-auto py-12 px-4">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold mb-4">Choose Your Plan</h1>
+    <div className="min-h-screen bg-background">
+      <PublicHeader />
+      <div className="container mx-auto py-12 px-4">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold mb-4">Choose Your Plan</h1>
         <p className="text-lg text-muted-foreground mb-8">
           Start with a {TRIAL_PERIOD_DAYS}-day free trial. No credit card required.
         </p>
@@ -230,6 +233,7 @@ export default function PricingPage() {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 }
