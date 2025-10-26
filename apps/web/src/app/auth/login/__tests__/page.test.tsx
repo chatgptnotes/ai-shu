@@ -4,11 +4,11 @@
  */
 
 import React from 'react'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import LoginPage from '../page'
 import { createClient } from '@/lib/supabase/client'
-import { createMockUser, createMockAuthResponse, mockAuthError } from '@/__tests__/utils/supabase-mock'
+import { createMockUser, createMockAuthResponse } from '@/__tests__/utils/supabase-mock'
 
 // Mock the Supabase client
 jest.mock('@/lib/supabase/client')

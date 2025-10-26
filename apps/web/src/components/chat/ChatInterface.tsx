@@ -22,7 +22,27 @@ export function ChatInterface({ sessionId, subject, topic, studentName, onEndSes
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Validate required props
+  useEffect(() => {
+    if (!sessionId) {
+      console.error('ChatInterface: sessionId is required but was undefined');
+      setError('Session ID is missing. Please try starting a new session.');
+      return;
+    }
+    if (!subject) {
+      console.error('ChatInterface: subject is required but was undefined');
+      setError('Subject is missing. Please try starting a new session.');
+      return;
+    }
+    if (!topic) {
+      console.error('ChatInterface: topic is required but was undefined');
+      setError('Topic is missing. Please try starting a new session.');
+      return;
+    }
+  }, [sessionId, subject, topic]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -33,25 +53,51 @@ export function ChatInterface({ sessionId, subject, topic, studentName, onEndSes
   }, [messages]);
 
   useEffect(() => {
+    // Only proceed if we have a valid sessionId
+    if (!sessionId) {
+      console.error('ChatInterface useEffect: Cannot load messages - sessionId is undefined');
+      return;
+    }
+
+    console.log('ChatInterface: Loading session data for sessionId:', sessionId);
     // Load existing messages
     loadMessages();
     // Send initial greeting
     sendInitialGreeting();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId]);
 
   const loadMessages = async () => {
+    if (!sessionId) {
+      console.error('loadMessages: Cannot load - sessionId is undefined');
+      return;
+    }
+
+    console.log('loadMessages: Fetching messages for sessionId:', sessionId);
     try {
       const response = await fetch(`/api/sessions/${sessionId}/messages`);
+      console.log('loadMessages: Response status:', response.status, response.statusText);
+
       if (response.ok) {
         const data = await response.json();
+        console.log('loadMessages: Received messages:', data.messages?.length || 0);
         setMessages(data.messages || []);
+      } else {
+        const errorText = await response.text();
+        console.error('loadMessages: Failed with status', response.status, errorText);
       }
     } catch (error) {
-      console.error('Failed to load messages:', error);
+      console.error('loadMessages: Exception caught:', error);
     }
   };
 
   const sendInitialGreeting = async () => {
+    if (!sessionId) {
+      console.error('sendInitialGreeting: Cannot send - sessionId is undefined');
+      return;
+    }
+
+    console.log('sendInitialGreeting: Sending initial greeting for sessionId:', sessionId);
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -66,8 +112,11 @@ export function ChatInterface({ sessionId, subject, topic, studentName, onEndSes
         }),
       });
 
+      console.log('sendInitialGreeting: Response status:', response.status, response.statusText);
+
       if (response.ok) {
         const data = await response.json();
+        console.log('sendInitialGreeting: Received reply:', data.reply ? 'yes' : 'no');
         if (data.reply) {
           setMessages((prev) => [
             ...prev,
@@ -79,9 +128,12 @@ export function ChatInterface({ sessionId, subject, topic, studentName, onEndSes
             },
           ]);
         }
+      } else {
+        const errorText = await response.text();
+        console.error('sendInitialGreeting: Failed with status', response.status, errorText);
       }
     } catch (error) {
-      console.error('Failed to send initial greeting:', error);
+      console.error('sendInitialGreeting: Exception caught:', error);
     }
   };
 
@@ -141,6 +193,21 @@ export function ChatInterface({ sessionId, subject, topic, studentName, onEndSes
       setIsLoading(false);
     }
   };
+
+  // Show error state if critical props are missing
+  if (error) {
+    return (
+      <div className="flex h-[calc(100vh-4rem)] flex-col items-center justify-center p-4">
+        <div className="rounded-md bg-destructive/10 p-6 text-center max-w-md">
+          <h2 className="text-lg font-semibold text-destructive mb-2">Session Error</h2>
+          <p className="text-sm text-destructive mb-4">{error}</p>
+          <Button onClick={onEndSession} variant="outline">
+            Return to Dashboard
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-[calc(100vh-4rem)] flex-col">

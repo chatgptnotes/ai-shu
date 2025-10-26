@@ -8,7 +8,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import SetupProfilePage from '../page'
 import { createClient } from '@/lib/supabase/client'
-import { createMockUser, mockAuthError } from '@/__tests__/utils/supabase-mock'
+import { createMockUser } from '@/__tests__/utils/supabase-mock'
 
 // Mock the Supabase client
 jest.mock('@/lib/supabase/client')
@@ -294,8 +294,6 @@ describe('SetupProfilePage', () => {
       mockSupabase.auth.getUser.mockResolvedValue({ data: { user: null } })
 
       render(<SetupProfilePage />)
-
-      const user = userEvent.setup()
 
       // Wait for the component to try to get user
       await waitFor(() => {

@@ -74,6 +74,13 @@ export function NewSessionForm() {
     try {
       const supabase = createClient();
 
+      console.log('NewSessionForm: Creating session with data:', {
+        student_id: studentId,
+        subject: formData.subject,
+        topic: formData.topic,
+        status: 'in_progress',
+      });
+
       // Create new session
       const { data: session, error: sessionError } = await supabase
         .from('sessions')
@@ -89,12 +96,58 @@ export function NewSessionForm() {
         .select()
         .single();
 
-      if (sessionError) throw sessionError;
+      if (sessionError) {
+        console.error('NewSessionForm: Error creating session:', {
+          error: sessionError,
+          code: sessionError.code,
+          message: sessionError.message,
+          details: sessionError.details,
+          hint: sessionError.hint,
+        });
+        throw sessionError;
+      }
+
+      if (!session) {
+        console.error('NewSessionForm: Session data is null despite no error');
+        throw new Error('Failed to create session - no data returned');
+      }
+
+      if (!session.id) {
+        console.error('NewSessionForm: Session created but ID is missing:', session);
+        throw new Error('Failed to create session - no ID returned');
+      }
+
+      console.log('NewSessionForm: Session created successfully:', {
+        id: session.id,
+        subject: session.subject,
+        topic: session.topic,
+        student_id: session.student_id,
+      });
+
+      // Verify the session was created by reading it back
+      console.log('NewSessionForm: Verifying session creation by reading back...');
+      const { data: verifySession, error: verifyError } = await supabase
+        .from('sessions')
+        .select('id, subject, topic, student_id, status')
+        .eq('id', session.id)
+        .single();
+
+      if (verifyError) {
+        console.error('NewSessionForm: Error verifying session:', verifyError);
+        console.warn('NewSessionForm: Proceeding despite verification error');
+      } else if (verifySession) {
+        console.log('NewSessionForm: Session verified successfully:', verifySession);
+      } else {
+        console.warn('NewSessionForm: Session verification returned null');
+      }
 
       // Redirect to session chat
+      console.log('NewSessionForm: Redirecting to /session/' + session.id);
       router.push(`/session/${session.id}`);
     } catch (err) {
-      setError((err as Error).message || 'Failed to create session');
+      const errorMessage = (err as Error).message || 'Failed to create session';
+      console.error('NewSessionForm: Caught error:', errorMessage, err);
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }

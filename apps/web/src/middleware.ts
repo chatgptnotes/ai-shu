@@ -56,7 +56,7 @@ export async function middleware(request: NextRequest) {
     );
 
     // Refresh session if exists
-    const { data: { user }, error } = await supabase.auth.getUser();
+    const { error } = await supabase.auth.getUser();
 
     // If there's an error and user is trying to access protected routes, redirect to login
     if (error && !request.nextUrl.pathname.startsWith('/auth') && request.nextUrl.pathname !== '/') {
