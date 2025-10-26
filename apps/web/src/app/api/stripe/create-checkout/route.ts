@@ -4,6 +4,7 @@ import { createCheckoutSession, createStripeCustomer } from '@/lib/stripe/client
 import { TRIAL_PERIOD_DAYS } from '@/config/subscription-tiers';
 import { rateLimiters, getRateLimitIdentifier, createRateLimitHeaders } from '@/lib/security/rate-limiter';
 import { withCsrfProtection } from '@/lib/security/csrf-middleware';
+import { validateRequestBody, stripeCheckoutSchema } from '@/lib/security/validation';
 
 export async function POST(request: Request) {
   // Apply rate limiting for payment endpoints (10 requests per minute)
@@ -28,15 +29,17 @@ export async function POST(request: Request) {
   const csrfCheck = await withCsrfProtection(request);
   if (csrfCheck) return csrfCheck;
 
-  try {
-    const { tier, billingPeriod } = await request.json();
+  // Validate request body
+  const validation = await validateRequestBody(request, stripeCheckoutSchema);
+  if (!validation.success) {
+    return NextResponse.json(
+      { error: 'Validation failed', message: validation.error },
+      { status: 400 }
+    );
+  }
 
-    if (!tier || !billingPeriod) {
-      return NextResponse.json(
-        { error: 'Tier and billing period are required' },
-        { status: 400 }
-      );
-    }
+  try {
+    const { tier, billingPeriod } = validation.data;
 
     // Get authenticated user
     const supabase = await createClient();

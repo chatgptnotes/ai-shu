@@ -3,6 +3,8 @@ import { createDIDClient } from '@/lib/did/client';
 import { createElevenLabsClient, VOICE_IDS } from '@/lib/elevenlabs/client';
 import { rateLimiters, getRateLimitIdentifier, createRateLimitHeaders } from '@/lib/security/rate-limiter';
 import { withCsrfProtection } from '@/lib/security/csrf-middleware';
+import { validateRequestBody, avatarGenerationSchema } from '@/lib/security/validation';
+import { sanitizePlainText, sanitizeUrl } from '@/lib/security/sanitization';
 
 const DID_API_KEY = process.env.DID_API_KEY;
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
@@ -36,12 +38,26 @@ export async function POST(request: Request) {
   const csrfCheck = await withCsrfProtection(request);
   if (csrfCheck) return csrfCheck;
 
-  try {
-    const { text, voiceId, avatarUrl, useElevenLabs } = await request.json();
+  // Validate request body
+  const validation = await validateRequestBody(request, avatarGenerationSchema);
+  if (!validation.success) {
+    return NextResponse.json(
+      { error: 'Validation failed', message: validation.error },
+      { status: 400 }
+    );
+  }
 
-    if (!text) {
+  try {
+    const { text, voiceId, avatarUrl, useElevenLabs } = validation.data;
+
+    // Sanitize text input
+    const sanitizedText = sanitizePlainText(text);
+
+    // Sanitize avatar URL if provided
+    const sanitizedAvatarUrl = avatarUrl ? sanitizeUrl(avatarUrl) : null;
+    if (avatarUrl && !sanitizedAvatarUrl) {
       return NextResponse.json(
-        { error: 'Text is required' },
+        { error: 'Invalid avatar URL' },
         { status: 400 }
       );
     }
@@ -58,7 +74,7 @@ export async function POST(request: Request) {
     // Configure voice provider
     const scriptConfig: any = {
       type: 'text',
-      input: text,
+      input: sanitizedText,
     };
 
     // Use ElevenLabs for high-quality voice if requested and API key is available
@@ -68,7 +84,7 @@ export async function POST(request: Request) {
 
         // Generate audio with ElevenLabs
         const audioBlob = await elevenLabsClient.textToSpeech({
-          text,
+          text: sanitizedText,
           voice_id: voiceId || DEFAULT_VOICE_ID,
           voice_settings: {
             stability: 0.5,
@@ -111,7 +127,7 @@ export async function POST(request: Request) {
 
     // Create talk request
     const talkRequest = {
-      source_url: avatarUrl || DEFAULT_AVATAR_URL,
+      source_url: sanitizedAvatarUrl || DEFAULT_AVATAR_URL,
       script: scriptConfig,
       config: {
         fluent: true,

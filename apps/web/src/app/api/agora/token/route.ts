@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { generateTempToken } from '@/lib/agora/token-generator';
 import { withCsrfProtection } from '@/lib/security/csrf-middleware';
+import { validateRequestBody, agoraTokenSchema } from '@/lib/security/validation';
 
 const AGORA_APP_ID = process.env.NEXT_PUBLIC_AGORA_APP_ID;
 const AGORA_APP_CERTIFICATE = process.env.AGORA_APP_CERTIFICATE;
@@ -10,15 +11,17 @@ export async function POST(request: Request) {
   const csrfCheck = await withCsrfProtection(request);
   if (csrfCheck) return csrfCheck;
 
-  try {
-    const { channelName, uid } = await request.json();
+  // Validate request body
+  const validation = await validateRequestBody(request, agoraTokenSchema);
+  if (!validation.success) {
+    return NextResponse.json(
+      { error: 'Validation failed', message: validation.error },
+      { status: 400 }
+    );
+  }
 
-    if (!channelName) {
-      return NextResponse.json(
-        { error: 'Channel name is required' },
-        { status: 400 }
-      );
-    }
+  try {
+    const { channelName, uid } = validation.data;
 
     if (!AGORA_APP_ID) {
       return NextResponse.json(

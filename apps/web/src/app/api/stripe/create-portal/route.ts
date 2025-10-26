@@ -2,18 +2,31 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createBillingPortalSession } from '@/lib/stripe/client';
 import { withCsrfProtection } from '@/lib/security/csrf-middleware';
+import { validateRequestBody, billingPortalSchema } from '@/lib/security/validation';
+import { sanitizeUrl } from '@/lib/security/sanitization';
 
 export async function POST(request: Request) {
   // Apply CSRF protection
   const csrfCheck = await withCsrfProtection(request);
   if (csrfCheck) return csrfCheck;
 
-  try {
-    const { returnUrl } = await request.json();
+  // Validate request body
+  const validation = await validateRequestBody(request, billingPortalSchema);
+  if (!validation.success) {
+    return NextResponse.json(
+      { error: 'Validation failed', message: validation.error },
+      { status: 400 }
+    );
+  }
 
-    if (!returnUrl) {
+  try {
+    const { returnUrl } = validation.data;
+
+    // Sanitize return URL
+    const sanitizedReturnUrl = sanitizeUrl(returnUrl);
+    if (!sanitizedReturnUrl) {
       return NextResponse.json(
-        { error: 'Return URL is required' },
+        { error: 'Invalid return URL' },
         { status: 400 }
       );
     }
@@ -46,7 +59,7 @@ export async function POST(request: Request) {
     // Create billing portal session
     const session = await createBillingPortalSession({
       customerId: stripeCustomer.stripe_customer_id,
-      returnUrl,
+      returnUrl: sanitizedReturnUrl,
     });
 
     return NextResponse.json({

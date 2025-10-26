@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { rateLimiters, getRateLimitIdentifier, createRateLimitHeaders } from '@/lib/security/rate-limiter';
 import { withCsrfProtection } from '@/lib/security/csrf-middleware';
+import { validateRequestBody, chatRequestSchema } from '@/lib/security/validation';
+import { sanitizeChatMessage, sanitizeTopicName } from '@/lib/security/sanitization';
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
@@ -100,8 +102,21 @@ export async function POST(request: Request) {
   const csrfCheck = await withCsrfProtection(request);
   if (csrfCheck) return csrfCheck;
 
+  // Validate request body
+  const validation = await validateRequestBody(request, chatRequestSchema);
+  if (!validation.success) {
+    return NextResponse.json(
+      { error: 'Validation failed', message: validation.error },
+      { status: 400 }
+    );
+  }
+
   try {
-    const { sessionId, message, subject, topic, studentName, isInitial } = await request.json();
+    const { sessionId, message, subject, topic, studentName, isInitial } = validation.data;
+
+    // Sanitize user inputs
+    const sanitizedMessage = message ? sanitizeChatMessage(message) : undefined;
+    const sanitizedTopic = sanitizeTopicName(topic);
 
     if (!OPENAI_API_KEY) {
       return NextResponse.json(
@@ -123,7 +138,7 @@ export async function POST(request: Request) {
 
     // Add system prompt and conversation history
     const messages = [
-      { role: 'system', content: getSystemPrompt(subject, topic, studentName) },
+      { role: 'system', content: getSystemPrompt(subject, sanitizedTopic, studentName) },
       ...conversationHistory.map((msg) => ({
         role: msg.role === 'ai_tutor' ? 'assistant' : 'user',
         content: msg.content,
@@ -134,20 +149,20 @@ export async function POST(request: Request) {
     if (isInitial && conversationHistory.length === 0) {
       messages.push({
         role: 'user',
-        content: `This is the start of our session. Please greet ${studentName} warmly and ask what they'd like to know about ${topic}.`,
+        content: `This is the start of our session. Please greet ${studentName} warmly and ask what they'd like to know about ${sanitizedTopic}.`,
       });
-    } else if (message) {
+    } else if (sanitizedMessage) {
       // Save user message to database
       await supabase.from('messages').insert([
         {
           session_id: sessionId,
           role: 'student',
-          content: message,
+          content: sanitizedMessage,
           timestamp: new Date().toISOString(),
         },
       ]);
 
-      messages.push({ role: 'user', content: message });
+      messages.push({ role: 'user', content: sanitizedMessage });
     }
 
     // Call OpenAI API

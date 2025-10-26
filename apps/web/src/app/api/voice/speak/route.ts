@@ -8,37 +8,35 @@ import { generateSpeechWithElevenLabs, ELEVENLABS_VOICE_PRESETS, ElevenLabsVoice
 import { withRateLimit } from '@/middleware/rate-limit';
 import { rateLimiters } from '@/lib/security/rate-limiter';
 import { withCsrfProtection } from '@/lib/security/csrf-middleware';
+import { validateRequestBody, voiceTTSSchema } from '@/lib/security/validation';
+import { sanitizePlainText } from '@/lib/security/sanitization';
 
 async function handler(request: Request): Promise<Response> {
   // Apply CSRF protection
   const csrfCheck = await withCsrfProtection(request);
   if (csrfCheck) return csrfCheck;
 
+  // Validate request body
+  const validation = await validateRequestBody(request, voiceTTSSchema);
+  if (!validation.success) {
+    return NextResponse.json(
+      { error: 'Validation failed', message: validation.error },
+      { status: 400 }
+    );
+  }
+
   try {
-    const body = await request.json();
-    const { text, voiceId, settings } = body;
+    const { text, voiceId, settings } = validation.data;
 
-    // Validation
-    if (!text || typeof text !== 'string') {
-      return NextResponse.json(
-        { error: 'Text is required and must be a string' },
-        { status: 400 }
-      );
-    }
-
-    if (text.length > 5000) {
-      return NextResponse.json(
-        { error: 'Text exceeds maximum length of 5000 characters' },
-        { status: 400 }
-      );
-    }
+    // Sanitize text input
+    const sanitizedText = sanitizePlainText(text);
 
     // Use default voice if not specified
     const selectedVoiceId = voiceId || ELEVENLABS_VOICE_PRESETS.educator_female;
 
     // Generate speech
     const audioBlob = await generateSpeechWithElevenLabs(
-      text,
+      sanitizedText,
       selectedVoiceId,
       settings as ElevenLabsVoiceSettings
     );

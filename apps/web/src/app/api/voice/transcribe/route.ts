@@ -7,6 +7,7 @@ import { NextResponse } from 'next/server';
 import { withRateLimit } from '@/middleware/rate-limit';
 import { rateLimiters } from '@/lib/security/rate-limiter';
 import { withCsrfProtection } from '@/lib/security/csrf-middleware';
+import { validateFileUpload } from '@/lib/security/validation';
 import OpenAI from 'openai';
 
 async function handler(request: Request): Promise<Response> {
@@ -26,19 +27,15 @@ async function handler(request: Request): Promise<Response> {
       );
     }
 
-    // Validate file size (max 25MB for Whisper)
-    if (audioFile.size > 25 * 1024 * 1024) {
-      return NextResponse.json(
-        { error: 'Audio file too large. Maximum size is 25MB' },
-        { status: 400 }
-      );
-    }
+    // Validate file using helper function
+    const fileValidation = validateFileUpload(audioFile, {
+      maxSize: 25 * 1024 * 1024, // 25MB for Whisper
+      allowedTypes: ['audio/wav', 'audio/mpeg', 'audio/mp3', 'audio/webm', 'audio/ogg'],
+    });
 
-    // Validate file type
-    const validTypes = ['audio/wav', 'audio/mpeg', 'audio/mp3', 'audio/webm', 'audio/ogg'];
-    if (!validTypes.includes(audioFile.type)) {
+    if (!fileValidation.success) {
       return NextResponse.json(
-        { error: 'Invalid audio format. Supported: WAV, MP3, WEBM, OGG' },
+        { error: fileValidation.error },
         { status: 400 }
       );
     }
