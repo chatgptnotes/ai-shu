@@ -5,6 +5,7 @@ import { Button, Input } from '@ai-shu/ui';
 import { ExportChatButton } from '@/components/session/ExportChatButton';
 import { VoiceInputButton } from '@/components/chat/VoiceInputButton';
 import { VoiceOutputButton } from '@/components/chat/VoiceOutputButton';
+import { AvatarVideo } from '@/components/avatar/AvatarVideo';
 
 interface Message {
   id: string;
@@ -26,6 +27,8 @@ export function ChatInterface({ sessionId, subject, topic, studentName, onEndSes
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentAvatarText, setCurrentAvatarText] = useState<string | null>(null);
+  const [showAvatar, setShowAvatar] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Validate required props
@@ -121,15 +124,15 @@ export function ChatInterface({ sessionId, subject, topic, studentName, onEndSes
         const data = await response.json();
         console.log('sendInitialGreeting: Received reply:', data.reply ? 'yes' : 'no');
         if (data.reply) {
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: Date.now().toString(),
-              role: 'ai_tutor',
-              content: data.reply,
-              timestamp: new Date().toISOString(),
-            },
-          ]);
+          const aiMessage = {
+            id: Date.now().toString(),
+            role: 'ai_tutor' as const,
+            content: data.reply,
+            timestamp: new Date().toISOString(),
+          };
+          setMessages((prev) => [...prev, aiMessage]);
+          // Trigger avatar to speak
+          setCurrentAvatarText(data.reply);
         }
       } else {
         const errorText = await response.text();
@@ -180,6 +183,8 @@ export function ChatInterface({ sessionId, subject, topic, studentName, onEndSes
         };
 
         setMessages((prev) => [...prev, aiMessage]);
+        // Trigger avatar to speak the response
+        setCurrentAvatarText(data.reply);
       } else {
         throw new Error('Failed to get response');
       }
@@ -222,6 +227,13 @@ export function ChatInterface({ sessionId, subject, topic, studentName, onEndSes
             <p className="text-sm text-muted-foreground capitalize">{subject}</p>
           </div>
           <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowAvatar(!showAvatar)}
+            >
+              {showAvatar ? 'Hide Avatar' : 'Show Avatar'}
+            </Button>
             <ExportChatButton
               sessionId={sessionId}
               sessionTopic={topic}
@@ -239,8 +251,31 @@ export function ChatInterface({ sessionId, subject, topic, studentName, onEndSes
         </div>
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      {/* Main Content Area - Avatar + Chat */}
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+        {/* Avatar Video - Desktop Left, Mobile Top */}
+        {showAvatar && (
+          <div className="md:w-1/3 lg:w-1/4 border-b md:border-b-0 md:border-r bg-muted/30">
+            <div className="h-48 md:h-full p-4">
+              <AvatarVideo
+                text={currentAvatarText || undefined}
+                autoPlay={true}
+                className="h-full w-full"
+                onVideoEnd={() => {
+                  console.log('Avatar video ended');
+                }}
+                onVideoError={(error) => {
+                  console.error('Avatar video error:', error);
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Chat Area */}
+        <div className={`flex-1 flex flex-col ${showAvatar ? 'md:w-2/3 lg:w-3/4' : 'w-full'}`}>
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message) => (
           <div
             key={message.id}
@@ -273,27 +308,29 @@ export function ChatInterface({ sessionId, subject, topic, studentName, onEndSes
             </div>
           </div>
         )}
-        <div ref={messagesEndRef} />
-      </div>
+            <div ref={messagesEndRef} />
+          </div>
 
-      {/* Input */}
-      <div className="border-t bg-card p-4">
-        <form onSubmit={handleSubmit} className="flex gap-2">
-          <Input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask a question or share your thoughts..."
-            disabled={isLoading}
-            className="flex-1"
-          />
-          <VoiceInputButton
-            onTranscript={(text) => setInput(prev => prev + ' ' + text)}
-            language="en-US"
-          />
-          <Button type="submit" disabled={isLoading || !input.trim()}>
-            Send
-          </Button>
-        </form>
+          {/* Input */}
+          <div className="border-t bg-card p-4">
+            <form onSubmit={handleSubmit} className="flex gap-2">
+              <Input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Ask a question or share your thoughts..."
+                disabled={isLoading}
+                className="flex-1"
+              />
+              <VoiceInputButton
+                onTranscript={(text) => setInput(prev => prev + ' ' + text)}
+                language="en-US"
+              />
+              <Button type="submit" disabled={isLoading || !input.trim()}>
+                Send
+              </Button>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
   );
