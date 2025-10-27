@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@ai-shu/ui';
 import { VideoCall } from '@/components/video/VideoCall';
 import { ChatInterface } from '@/components/chat/ChatInterface';
@@ -10,7 +11,6 @@ interface LiveSessionViewProps {
   subject: string;
   topic: string;
   studentName: string;
-  onEndSession: () => void;
 }
 
 export function LiveSessionView({
@@ -18,13 +18,18 @@ export function LiveSessionView({
   subject,
   topic,
   studentName,
-  onEndSession,
 }: LiveSessionViewProps) {
+  const router = useRouter();
   const [showVideo, setShowVideo] = useState(true);
   const [videoCallError, setVideoCallError] = useState<Error | null>(null);
 
   // Generate channel name from session ID
   const channelName = `session-${sessionId}`;
+
+  // Handle end session - navigate back to dashboard
+  const handleEndSession = () => {
+    router.push('/dashboard');
+  };
 
   const handleCallEnd = () => {
     console.log('Video call ended');
@@ -52,7 +57,7 @@ export function LiveSessionView({
             >
               {showVideo ? 'Hide Video' : 'Show Video'}
             </Button>
-            <Button variant="destructive" onClick={onEndSession}>
+            <Button variant="destructive" onClick={handleEndSession}>
               End Session
             </Button>
           </div>
@@ -87,7 +92,6 @@ export function LiveSessionView({
             subject={subject}
             topic={topic}
             studentName={studentName}
-            onEndSession={onEndSession}
           />
         </div>
       </div>
