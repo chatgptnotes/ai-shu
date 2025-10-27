@@ -81,6 +81,11 @@ export async function validateCsrfRequest(request: Request): Promise<CsrfValidat
  * ```
  */
 export async function withCsrfProtection(request: Request): Promise<NextResponse | null> {
+  // Skip CSRF protection in development mode
+  if (process.env.NODE_ENV === 'development') {
+    return null;
+  }
+
   const result = await validateCsrfRequest(request);
 
   if (!result.valid) {
