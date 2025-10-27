@@ -97,9 +97,6 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
           subject={session.subject}
           topic={session.topic}
           studentName={profile.full_name}
-          onEndSession={() => {
-            window.location.href = '/dashboard';
-          }}
         />
       </main>
 

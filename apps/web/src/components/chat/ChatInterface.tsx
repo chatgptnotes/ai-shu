@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button, Input } from '@ai-shu/ui';
 import { ExportChatButton } from '@/components/session/ExportChatButton';
 import { VoiceInputButton } from '@/components/chat/VoiceInputButton';
@@ -19,10 +20,10 @@ interface ChatInterfaceProps {
   subject: string;
   topic: string;
   studentName: string;
-  onEndSession: () => void;
 }
 
-export function ChatInterface({ sessionId, subject, topic, studentName, onEndSession }: ChatInterfaceProps) {
+export function ChatInterface({ sessionId, subject, topic, studentName }: ChatInterfaceProps) {
+  const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -30,6 +31,11 @@ export function ChatInterface({ sessionId, subject, topic, studentName, onEndSes
   const [currentAvatarText, setCurrentAvatarText] = useState<string | null>(null);
   const [showAvatar, setShowAvatar] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Handle end session - navigate back to dashboard
+  const handleEndSession = () => {
+    router.push('/dashboard');
+  };
 
   // Validate required props
   useEffect(() => {
@@ -209,7 +215,7 @@ export function ChatInterface({ sessionId, subject, topic, studentName, onEndSes
         <div className="rounded-md bg-destructive/10 p-6 text-center max-w-md">
           <h2 className="text-lg font-semibold text-destructive mb-2">Session Error</h2>
           <p className="text-sm text-destructive mb-4">{error}</p>
-          <Button onClick={onEndSession} variant="outline">
+          <Button onClick={handleEndSession} variant="outline">
             Return to Dashboard
           </Button>
         </div>
@@ -244,7 +250,7 @@ export function ChatInterface({ sessionId, subject, topic, studentName, onEndSes
                 timestamp: m.timestamp,
               }))}
             />
-            <Button variant="destructive" onClick={onEndSession}>
+            <Button variant="destructive" onClick={handleEndSession}>
               End Session
             </Button>
           </div>
