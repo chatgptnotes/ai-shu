@@ -30,12 +30,29 @@ export function ChatInterface({ sessionId, subject, topic, studentName }: ChatIn
   const [error, setError] = useState<string | null>(null);
   const [currentAvatarText, setCurrentAvatarText] = useState<string | null>(null);
   const [showAvatar, setShowAvatar] = useState(true);
+  const [csrfToken, setCsrfToken] = useState<string>('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Handle end session - navigate back to dashboard
   const handleEndSession = () => {
     router.push('/dashboard');
   };
+
+  // Fetch CSRF token on mount
+  useEffect(() => {
+    const fetchCsrfToken = async () => {
+      try {
+        const response = await fetch('/api/csrf');
+        if (response.ok) {
+          const data = await response.json();
+          setCsrfToken(data.token);
+        }
+      } catch (error) {
+        console.error('Failed to fetch CSRF token:', error);
+      }
+    };
+    fetchCsrfToken();
+  }, []);
 
   // Validate required props
   useEffect(() => {
@@ -65,9 +82,14 @@ export function ChatInterface({ sessionId, subject, topic, studentName }: ChatIn
   }, [messages]);
 
   useEffect(() => {
-    // Only proceed if we have a valid sessionId
+    // Only proceed if we have a valid sessionId and CSRF token
     if (!sessionId) {
       console.error('ChatInterface useEffect: Cannot load messages - sessionId is undefined');
+      return;
+    }
+
+    if (!csrfToken) {
+      console.log('ChatInterface useEffect: Waiting for CSRF token...');
       return;
     }
 
@@ -77,7 +99,7 @@ export function ChatInterface({ sessionId, subject, topic, studentName }: ChatIn
     // Send initial greeting
     sendInitialGreeting();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionId]);
+  }, [sessionId, csrfToken]);
 
   const loadMessages = async () => {
     if (!sessionId) {
@@ -109,11 +131,19 @@ export function ChatInterface({ sessionId, subject, topic, studentName }: ChatIn
       return;
     }
 
+    if (!csrfToken) {
+      console.error('sendInitialGreeting: CSRF token not available yet');
+      return;
+    }
+
     console.log('sendInitialGreeting: Sending initial greeting for sessionId:', sessionId);
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
+        },
         body: JSON.stringify({
           sessionId,
           message: null, // Null message triggers initial greeting
@@ -154,6 +184,12 @@ export function ChatInterface({ sessionId, subject, topic, studentName }: ChatIn
 
     if (!input.trim() || isLoading) return;
 
+    if (!csrfToken) {
+      console.error('handleSubmit: CSRF token not available');
+      setError('Security token not available. Please refresh the page.');
+      return;
+    }
+
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'student',
@@ -168,7 +204,10 @@ export function ChatInterface({ sessionId, subject, topic, studentName }: ChatIn
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
+        },
         body: JSON.stringify({
           sessionId,
           message: userMessage.content,
